@@ -10,10 +10,10 @@ export default class LostScene extends Phaser.Scene {
   }
 
   create () {
-    this.text = this.add.text(HALF - 300, HALF, `BOOM ! YOU CRASHED THE PLANE`, {
-      fontFamily: 'Georgia, "Goudy Bookletter 1911", Times, serif',
-      color: '#000000',
-      fontSize: 64});
+    this.background = this.physics.add.sprite(FULL,FULL,'LOOSE');
+    this.background.setPosition(0,0)
+    this.background.setCollideWorldBounds(true)
+
   }
 
   update () {

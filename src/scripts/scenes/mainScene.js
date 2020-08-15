@@ -8,7 +8,7 @@ const HALF = FULL / 2
 const RIGHT_SIDE = 868
 const LEFT_SIDE = 217
 
-const TURBINE_SIZE = 217
+const TURBINE_SIZE = 125
 const PLAYER_SPEED = 50
 const PI = 3.1415
 
@@ -29,10 +29,10 @@ export default class MainScene extends Phaser.Scene {
     for (let i = 0; i < 10; ++i) {
       let full_x = x
       let full_y = y
-      if (type == 'top') full_y -= i * 100
-      if (type == 'bottom') full_y += i * 100
-      if (type == 'left') full_x -= i * 100
-      if (type == 'right') full_x += i * 100
+      if (type == 'top') full_y -= i * 200
+      if (type == 'bottom') full_y += i * 200
+      if (type == 'left') full_x -= i * 200
+      if (type == 'right') full_x += i * 200
       this.physics.add.sprite(FULL, FULL, 'wind').setPosition(full_x, full_y).setRotation((type == 'top' || type == 'bottom') ? 0 : PI / 2)
     }
   }
@@ -43,6 +43,12 @@ export default class MainScene extends Phaser.Scene {
     //TODO: Add wind
     this.turbines.push({
       x, y, type, sprite
+    })
+  }
+
+  create_obstacles() {
+    this.obstacles.forEach(obstacle => {
+      this.physics.add.sprite(LEFT_SIDE + obstacle.x, obstacle.y, obstacle.type).setDisplaySize(obstacle.size.x, obstacle.size.y)
     })
   }
 
@@ -59,10 +65,11 @@ export default class MainScene extends Phaser.Scene {
     this.player.setCollideWorldBounds(true)
 
     this.obstacles = [
-      {x: 100, y: 100, type: 'nuclear01'},
-      {x: 100, y: 100, type: 'nuclear01'},
+      {x: 100, y: 100, type: 'nuclear_01',size: {x:150, y: 200}},
+      {x: 200, y: 200, type: 'nuclear_02',size: {x:150, y: 200}},
     ]
 
+    this.create_obstacles()
 
     this.holding = undefined
 
@@ -106,34 +113,40 @@ export default class MainScene extends Phaser.Scene {
     let speed = {x:0, y:0}
     this.turbines.forEach(turbine => {
       if (turbine.type == 'top') {
-        if (Math.abs(this.player.x - turbine.x + TURBINE_SIZE / 2) < TURBINE_SIZE && this.player.y < turbine.y) {
+        if (Math.abs(this.player.x - (turbine.x + TURBINE_SIZE / 2)) < TURBINE_SIZE && this.player.y < turbine.y) {
           speed.y -= PLAYER_SPEED
          }
       }
       if (turbine.type == 'bottom') {
-        if (Math.abs(this.player.x - turbine.x + TURBINE_SIZE / 2) < TURBINE_SIZE && this.player.y > turbine.y) {
+        if (Math.abs(this.player.x - (turbine.x + TURBINE_SIZE / 2)) < TURBINE_SIZE && this.player.y > turbine.y + TURBINE_SIZE) {
           speed.y += PLAYER_SPEED
          }
       }
       if (turbine.type == 'right') {
-        if (Math.abs(this.player.y - turbine.y + TURBINE_SIZE / 2) < TURBINE_SIZE && this.player.x > turbine.x) {
+        if (Math.abs(this.player.y - (turbine.y + TURBINE_SIZE / 2)) < TURBINE_SIZE && this.player.x > turbine.x) {
           speed.x += PLAYER_SPEED
         }
       }
       if (turbine.type == 'left') {
-        if (Math.abs(this.player.y - turbine.y + TURBINE_SIZE / 2) < TURBINE_SIZE && this.player.x < turbine.x) {
+        if (Math.abs(this.player.y - (turbine.y + TURBINE_SIZE / 2)) < TURBINE_SIZE && this.player.x < turbine.x + TURBINE_SIZE) {
           speed.x -= PLAYER_SPEED
         }
       }
     })
     this.player.setVelocity(speed.x, speed.y)
     this.player.setRotation(Math.atan2(speed.y, speed.x))
+
+    this.obstacles.forEach(obs => {
+      if (Math.abs(this.player.x - (obs.x + obs.size.x / 2)) <= obs.size.x && Math.abs(this.player.y - (obs.y + obs.size.y / 2)) <= obs.size.y) {
+        this.scene.start('LostScene')        
+      }
+    })
     
     if (this.player.x < LEFT_SIDE + 10 || this.player.y <= 10 || this.player.y >= FULL_Y - 10) {
-      return win()
+      this.scene.start('LostScene')
     }
     if (this.player.x >= FULL - 10) {
-      return loose()
+      this.scene.start('WonScene')
     }
   }
 }

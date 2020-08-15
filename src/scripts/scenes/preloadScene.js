@@ -11,6 +11,13 @@ export default class PreloadScene extends Phaser.Scene {
     this.load.image('bottom', 'assets/img/bottom.png')
     this.load.image('left', 'assets/img/left.png')
     this.load.image('right', 'assets/img/right.png')
+
+    this.load.image('nuclear_01', 'assets/img/Nuclear01.png')
+    this.load.image('nuclear_02', 'assets/img/Nuclear02.png')
+
+    this.load.image('WIN', 'assets/img/WIN.png')
+    this.load.image('LOOSE', 'assets/img/LOOSE.png')
+
   }
 
   create() {
