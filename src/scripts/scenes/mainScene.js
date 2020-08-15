@@ -2,6 +2,7 @@ import PhaserLogo from '../objects/phaserLogo'
 import FpsText from '../objects/fpsText'
 
 const FULL = 868 + 217
+const FULL_Y = 868
 const HALF = FULL / 2
 
 const RIGHT_SIDE = 868
@@ -25,6 +26,15 @@ export default class MainScene extends Phaser.Scene {
     this.turbines.push({
       x, y, type, sprite
     })
+    for (let i = 0; i < 10; ++i) {
+      let full_x = x
+      let full_y = y
+      if (type == 'top') full_y -= i * 100
+      if (type == 'bottom') full_y += i * 100
+      if (type == 'left') full_x -= i * 100
+      if (type == 'right') full_x += i * 100
+      this.physics.add.sprite(FULL, FULL, 'wind').setPosition(full_x, full_y).setRotation((type == 'top' || type == 'bottom') ? 0 : PI / 2)
+    }
   }
 
   add_wind(x,y,type) {
@@ -48,22 +58,28 @@ export default class MainScene extends Phaser.Scene {
     this.player.setPosition(LEFT_SIDE + 50, HALF)
     this.player.setCollideWorldBounds(true)
 
+    this.obstacles = [
+      {x: 100, y: 100, type: 'nuclear01'},
+      {x: 100, y: 100, type: 'nuclear01'},
+    ]
+
 
     this.holding = undefined
 
     this.input.on('pointerdown', event => {
-      console.log(event.position)
       if (event.position.x < LEFT_SIDE) {
-        if (event.position.y < LEFT_SIDE) {
+        if (event.position.y <= 200) {
+        }
+        else if (event.position.y < 200 + 150 * 1) {
           this.holding = {sprite: this.physics.add.sprite(FULL, FULL, 'top'), type: 'top'}
         }
-        else if (event.position.y < LEFT_SIDE * 2) {
-          this.holding = {sprite: this.physics.add.sprite(FULL, FULL, 'left'), type: 'left'}
-        }
-        else if (event.position.y < LEFT_SIDE * 3) {
+        else if (event.position.y < 200 + 150 * 2) {
           this.holding = {sprite: this.physics.add.sprite(FULL, FULL, 'bottom'), type: 'bottom'}
         }
-        else if (event.position.y < LEFT_SIDE * 4) {
+        else if (event.position.y < 200 + 150 * 3) {
+          this.holding = {sprite: this.physics.add.sprite(FULL, FULL, 'left'), type: 'left'}
+        }
+        else if (event.position.y < 200 + 150 * 4) {
           this.holding = {sprite: this.physics.add.sprite(FULL, FULL, 'right'), type: 'right'}
         }
       }
@@ -87,30 +103,37 @@ export default class MainScene extends Phaser.Scene {
   }
 
   update () {
-    let speed = {x:0,y:0}
+    let speed = {x:0, y:0}
     this.turbines.forEach(turbine => {
       if (turbine.type == 'top') {
-        if (Math.abs(this.player.x - turbine.x) < TURBINE_SIZE && this.player.y < turbine.y) {
+        if (Math.abs(this.player.x - turbine.x + TURBINE_SIZE / 2) < TURBINE_SIZE && this.player.y < turbine.y) {
           speed.y -= PLAYER_SPEED
          }
       }
       if (turbine.type == 'bottom') {
-        if (Math.abs(this.player.x - turbine.x) < TURBINE_SIZE && this.player.y > turbine.y) {
+        if (Math.abs(this.player.x - turbine.x + TURBINE_SIZE / 2) < TURBINE_SIZE && this.player.y > turbine.y) {
           speed.y += PLAYER_SPEED
          }
       }
       if (turbine.type == 'right') {
-        if (Math.abs(this.player.y - turbine.y) < TURBINE_SIZE && this.player.x > turbine.x) {
+        if (Math.abs(this.player.y - turbine.y + TURBINE_SIZE / 2) < TURBINE_SIZE && this.player.x > turbine.x) {
           speed.x += PLAYER_SPEED
         }
       }
       if (turbine.type == 'left') {
-        if (Math.abs(this.player.y - turbine.y) < TURBINE_SIZE && this.player.x < turbine.x) {
+        if (Math.abs(this.player.y - turbine.y + TURBINE_SIZE / 2) < TURBINE_SIZE && this.player.x < turbine.x) {
           speed.x -= PLAYER_SPEED
         }
       }
     })
     this.player.setVelocity(speed.x, speed.y)
     this.player.setRotation(Math.atan2(speed.y, speed.x))
+    
+    if (this.player.x < LEFT_SIDE + 10 || this.player.y <= 10 || this.player.y >= FULL_Y - 10) {
+      return win()
+    }
+    if (this.player.x >= FULL - 10) {
+      return loose()
+    }
   }
 }
