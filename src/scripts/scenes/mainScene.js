@@ -142,7 +142,8 @@ export default class MainScene extends Phaser.Scene {
     this.player.setRotation(Math.atan2(speed.y, speed.x))
 
     this.obstacles.forEach(obs => {
-      if (Math.abs(this.player.x - (LEFT_SIDE + obs.x + obs.size.x / 2)) <= obs.size.x && Math.abs(this.player.y - (obs.y + obs.size.y / 2)) <= obs.size.y) {
+      if (Math.abs(this.player.x - (LEFT_SIDE + obs.x + obs.size.x / 2)) <= obs.size.x * 0.75
+       && Math.abs(this.player.y - (obs.y + obs.size.y / 2)) <= obs.size.y * 0.75) {
         this.scene.start('LostScene')        
       }
     })
