@@ -12,6 +12,8 @@ const TURBINE_SIZE = 100
 const PLAYER_SPEED = 50
 const PI = 3.1415
 
+const PLAYER_SIZE = {x:70, y:25}
+
 export default class MainScene extends Phaser.Scene {
   fpsText
 
@@ -39,8 +41,7 @@ export default class MainScene extends Phaser.Scene {
   add_wind(x,y,type) {
     const sprite = this.physics.add.sprite(FULL, FULL, type)
     sprite.setPosition(x,y)
-    sprite.setDisplayOrigin(60, 50)
-    //TODO: Add wind
+    // sprite.setDisplayOrigin(60, 50)
     this.turbines.push({
       x, y, type, sprite
     })
@@ -48,7 +49,7 @@ export default class MainScene extends Phaser.Scene {
 
   create_obstacles() {
     this.obstacles.forEach(obstacle => {
-      this.physics.add.sprite(LEFT_SIDE + obstacle.x, obstacle.y, obstacle.type).setDisplaySize(obstacle.size.x, obstacle.size.y).setDisplayOrigin(obstacle.size.x / 2, obstacle.size.y / 2)
+      this.physics.add.sprite(LEFT_SIDE + obstacle.x, obstacle.y, obstacle.type).setDisplaySize(obstacle.size.x, obstacle.size.y) // .setDisplayOrigin(obstacle.size.x / 2, obstacle.size.y / 2)
     })
   }
 
@@ -63,7 +64,7 @@ export default class MainScene extends Phaser.Scene {
     this.player = this.physics.add.sprite(FULL, FULL, 'player')
     this.player.setPosition(LEFT_SIDE + 100, HALF)
     this.player.setCollideWorldBounds(true)
-    this.player.setDisplayOrigin(25,12)
+    // this.player.setDisplayOrigin(25,12)
 
     this.obstacles = [
       {x: 100, y: 100, type: 'nuclear_01',size: {x:225 / 2, y: 377 / 2}},
@@ -114,26 +115,34 @@ export default class MainScene extends Phaser.Scene {
     })
   }
 
+  collide (obj1_pos, obj1_size, obj2_pos, obj2_size, care_about_x, care_about_y) {
+    const col_x = (o1_p, o1_s, o2_p, o2_s) => (!care_about_x || (o1_p.x <= o2_p.x && o1_p.x + o1_s.x >= o2_p.x))
+    const col_y = (o1_p, o1_s, o2_p, o2_s) => (!care_about_y || (o1_p.y <= o2_p.y && o1_p.y + o1_s.y >= o2_p.y))
+
+    return (col_x(obj1_pos, obj1_size, obj2_pos, obj2_size) || col_x(obj2_pos, obj2_size, obj1_pos, obj1_size))
+        && (col_y(obj1_pos, obj1_size, obj2_pos, obj2_size) || col_y(obj2_pos, obj2_size, obj1_pos, obj1_size))
+  }
+
   update () {
     let speed = {x:0, y:0}
     this.turbines.forEach(turbine => {
       if (turbine.type == 'top') {
-        if (Math.abs(this.player.x - (turbine.x + TURBINE_SIZE / 2)) < TURBINE_SIZE && this.player.y < turbine.y) {
+        if (this.collide(this.player, PLAYER_SIZE, turbine, {x:TURBINE_SIZE, y:TURBINE_SIZE}, true, false) && this.player.y < turbine.y) {
           speed.y -= PLAYER_SPEED
-         }
+        }
       }
       if (turbine.type == 'bottom') {
-        if (Math.abs(this.player.x - (turbine.x + TURBINE_SIZE / 2)) < TURBINE_SIZE && this.player.y > turbine.y + TURBINE_SIZE) {
+        if (this.collide(this.player, PLAYER_SIZE, turbine, {x:TURBINE_SIZE, y:TURBINE_SIZE}, true, false) && this.player.y > turbine.y + TURBINE_SIZE) {
           speed.y += PLAYER_SPEED
          }
       }
       if (turbine.type == 'right') {
-        if (Math.abs(this.player.y - (turbine.y + TURBINE_SIZE / 2)) < TURBINE_SIZE && this.player.x > turbine.x) {
+        if (this.collide(this.player, PLAYER_SIZE, turbine, {x:TURBINE_SIZE, y:TURBINE_SIZE}, false, true) && this.player.x > turbine.x) {
           speed.x += PLAYER_SPEED
         }
       }
       if (turbine.type == 'left') {
-        if (Math.abs(this.player.y - (turbine.y + TURBINE_SIZE / 2)) < TURBINE_SIZE && this.player.x < turbine.x + TURBINE_SIZE) {
+        if (this.collide(this.player, PLAYER_SIZE, turbine, {x:TURBINE_SIZE, y:TURBINE_SIZE}, false, true) && this.player.x < turbine.x + TURBINE_SIZE) {
           speed.x -= PLAYER_SPEED
         }
       }
@@ -142,8 +151,7 @@ export default class MainScene extends Phaser.Scene {
     this.player.setRotation(Math.atan2(speed.y, speed.x))
 
     this.obstacles.forEach(obs => {
-      if (Math.abs(this.player.x - (LEFT_SIDE + obs.x + obs.size.x / 2)) <= obs.size.x * 0.75
-       && Math.abs(this.player.y - (obs.y + obs.size.y / 2)) <= obs.size.y * 0.75) {
+      if (this.collide(this.player, PLAYER_SIZE, {x: obs.x + LEFT_SIDE, y:obs.y}, obs.size, true, true)) {
         this.scene.start('LostScene')        
       }
     })
