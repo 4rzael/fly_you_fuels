@@ -21,6 +21,7 @@ export default class PreloadScene extends Phaser.Scene {
     this.load.image('WIN', 'assets/img/WIN.png')
     this.load.image('LOOSE', 'assets/img/LOOSE.png')
 
+    this.load.audio('music', 'assets/img/music.wav')
   }
 
   create() {

@@ -55,8 +55,9 @@ export default class MainScene extends Phaser.Scene {
 
 
   create () {
+    const music = this.game.sound.add('music')
+    music.play({loop: true})
     this.turbines = []
-    // music.play({loop: true})
     this.background = this.physics.add.sprite(FULL,FULL,'fond');
     this.background.setPosition(0,0)
     this.background.setCollideWorldBounds(true)
