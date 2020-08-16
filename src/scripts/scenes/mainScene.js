@@ -8,7 +8,7 @@ const HALF = FULL / 2
 const RIGHT_SIDE = 868
 const LEFT_SIDE = 217
 
-const TURBINE_SIZE = 125
+const TURBINE_SIZE = 100
 const PLAYER_SPEED = 50
 const PI = 3.1415
 
@@ -22,7 +22,6 @@ export default class MainScene extends Phaser.Scene {
   add_wind_turbine(x,y,type) {
     const sprite = this.physics.add.sprite(FULL, FULL, type)
     sprite.setPosition(x,y)
-    //TODO: Add wind
     this.turbines.push({
       x, y, type, sprite
     })
@@ -40,6 +39,7 @@ export default class MainScene extends Phaser.Scene {
   add_wind(x,y,type) {
     const sprite = this.physics.add.sprite(FULL, FULL, type)
     sprite.setPosition(x,y)
+    sprite.setDisplayOrigin(60, 50)
     //TODO: Add wind
     this.turbines.push({
       x, y, type, sprite
@@ -48,7 +48,7 @@ export default class MainScene extends Phaser.Scene {
 
   create_obstacles() {
     this.obstacles.forEach(obstacle => {
-      this.physics.add.sprite(LEFT_SIDE + obstacle.x, obstacle.y, obstacle.type).setDisplaySize(obstacle.size.x, obstacle.size.y)
+      this.physics.add.sprite(LEFT_SIDE + obstacle.x, obstacle.y, obstacle.type).setDisplaySize(obstacle.size.x, obstacle.size.y).setDisplayOrigin(obstacle.size.x / 2, obstacle.size.y / 2)
     })
   }
 
@@ -61,12 +61,17 @@ export default class MainScene extends Phaser.Scene {
     this.background.setCollideWorldBounds(true)
 
     this.player = this.physics.add.sprite(FULL, FULL, 'player')
-    this.player.setPosition(LEFT_SIDE + 50, HALF)
+    this.player.setPosition(LEFT_SIDE + 100, HALF)
     this.player.setCollideWorldBounds(true)
+    this.player.setDisplayOrigin(25,12)
 
     this.obstacles = [
-      {x: 100, y: 100, type: 'nuclear_01',size: {x:150, y: 200}},
-      {x: 200, y: 200, type: 'nuclear_02',size: {x:150, y: 200}},
+      {x: 100, y: 100, type: 'nuclear_01',size: {x:225 / 2, y: 377 / 2}},
+      {x: 200, y: 200, type: 'nuclear_02',size: {x:295 / 3, y: 387 / 3}},
+      {x: 600, y: 300, type: 'cloud_1',size: {x:274, y: 188}},
+      {x: 300, y: 700, type: 'gas',size: {x:343 / 1.5, y: 200 / 1.5}},
+      {x: 600, y: HALF, type: 'cloud_2',size: {x:412, y: 188}},
+      {x: 700, y: FULL_Y - 100, type: 'nuclear_01',size: {x:225 / 2, y: 377 / 2}},
     ]
 
     this.create_obstacles()
@@ -137,15 +142,15 @@ export default class MainScene extends Phaser.Scene {
     this.player.setRotation(Math.atan2(speed.y, speed.x))
 
     this.obstacles.forEach(obs => {
-      if (Math.abs(this.player.x - (obs.x + obs.size.x / 2)) <= obs.size.x && Math.abs(this.player.y - (obs.y + obs.size.y / 2)) <= obs.size.y) {
+      if (Math.abs(this.player.x - (LEFT_SIDE + obs.x + obs.size.x / 2)) <= obs.size.x && Math.abs(this.player.y - (obs.y + obs.size.y / 2)) <= obs.size.y) {
         this.scene.start('LostScene')        
       }
     })
     
-    if (this.player.x < LEFT_SIDE + 10 || this.player.y <= 10 || this.player.y >= FULL_Y - 10) {
+    if (this.player.x < LEFT_SIDE + 10 || this.player.y <= 50 || this.player.y >= FULL_Y - 50) {
       this.scene.start('LostScene')
     }
-    if (this.player.x >= FULL - 10) {
+    if (this.player.x >= FULL - 50) {
       this.scene.start('WonScene')
     }
   }
